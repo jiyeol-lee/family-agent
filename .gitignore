@@ -1,0 +1,11 @@
+node_modules/
+dist/
+.angular/
+.wrangler/
+.dev.vars
+*.tfstate
+*.tfstate.*
+.terraform/
+terraform/*.tfplan
+terraform/terraform.tfvars
+.DS_Store
