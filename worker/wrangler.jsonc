@@ -1,0 +1,19 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "family-agent-worker",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-08-18",
+  "vars": {
+    "ZEN_MODEL": "deepseek-v4-flash",
+    "ZEN_BASE_URL": "https://opencode.ai/zen/v1",
+    "ALLOWED_ORIGINS": "http://localhost:4200"
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "family-agent-db",
+      "database_id": "00000000-0000-0000-0000-000000000000",
+      "migrations_dir": "migrations"
+    }
+  ]
+}

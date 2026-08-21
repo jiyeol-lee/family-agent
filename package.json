@@ -1,0 +1,13 @@
+{
+  "name": "family-agent",
+  "private": true,
+  "workspaces": [
+    "frontend",
+    "worker"
+  ],
+  "scripts": {
+    "build": "npm run lint --workspace frontend && npm run format:check --workspace frontend && npm run build --workspace frontend && npm run check --workspace worker && npm run bundle --workspace worker",
+    "check": "npm run lint --workspace frontend && npm run format:check --workspace frontend && npm run build --workspace frontend && npm run check --workspace worker",
+    "build:frontend:prod": "npm run build --workspace frontend -- --configuration production"
+  }
+}

@@ -1,0 +1,208 @@
+<main class="mx-auto w-[min(1100px,calc(100%_-_2rem))] py-16 max-[650px]:py-10">
+  <header class="mb-8">
+    <p class="mb-[0.4rem] text-[0.8rem] font-bold tracking-[0.09em] text-[#536153] uppercase">Family Agent</p>
+    <h1 class="m-0 text-[clamp(2rem,6vw,3.4rem)] leading-[1.05] tracking-[-0.04em]">Purchase Wishlist</h1>
+    <p class="mt-[0.8rem] text-[#5f625d]">A read-only view of family purchases managed through Telegram.</p>
+  </header>
+
+  <nav class="mb-4 flex gap-2" aria-label="Purchase views">
+    <button [class]="scope() === 'active' ? selectedTabClasses : tabClasses" type="button" (click)="setScope('active')">
+      Active
+    </button>
+    <button
+      [class]="scope() === 'archived' ? selectedTabClasses : tabClasses"
+      type="button"
+      (click)="setScope('archived')"
+    >
+      Archived
+    </button>
+  </nav>
+  <section
+    class="mb-5 grid grid-cols-[minmax(220px,1fr)_180px] items-end gap-4 max-[650px]:grid-cols-1"
+    aria-label="Purchase filters"
+  >
+    <label>
+      <span class="mb-[0.4rem] block text-[0.85rem] font-bold">Search</span>
+      <input
+        class="min-h-11 w-full box-border rounded-md border border-[#c9ccc5] bg-white px-3 py-[0.65rem] text-inherit focus:outline-3 focus:outline-offset-2 focus:outline-[#b6d9bf]"
+        type="search"
+        placeholder="Item or comment"
+        [value]="search()"
+        (input)="setSearch($event)"
+      />
+    </label>
+    <label>
+      <span class="mb-[0.4rem] block text-[0.85rem] font-bold">Status</span>
+      <select
+        class="min-h-11 w-full box-border rounded-md border border-[#c9ccc5] bg-white px-3 py-[0.65rem] text-inherit focus:outline-3 focus:outline-offset-2 focus:outline-[#b6d9bf]"
+        [value]="filter()"
+        (change)="setFilter($event)"
+      >
+        <option value="all">All</option>
+        <option value="pending">Pending</option>
+        <option value="purchased">Purchased</option>
+        <option value="archived">Archived</option>
+      </select>
+    </label>
+  </section>
+
+  @if (loading()) {
+  <div class="rounded-lg border border-dashed border-[#c9ccc5] px-4 py-12 text-center text-[#5f625d]" role="status">
+    Loading purchases...
+  </div>
+  } @else if (error()) {
+  <div class="rounded-lg border border-dashed border-[#d8aaa6] px-4 py-12 text-center text-[#842822]" role="alert">
+    <p class="mt-0">{{ error() }}</p>
+    <button
+      class="cursor-pointer rounded-[5px] border border-[#29352c] bg-[#29352c] px-[0.9rem] py-[0.6rem] text-white focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-[#b6d9bf]"
+      type="button"
+      (click)="load()"
+    >
+      Try again
+    </button>
+  </div>
+  } @else if (visiblePurchases().length === 0) {
+  <div class="rounded-lg border border-dashed border-[#c9ccc5] px-4 py-12 text-center text-[#5f625d]">
+    No purchases match this view.
+  </div>
+  } @else {
+  <div class="overflow-x-auto rounded-lg border border-[#dfe1dc] bg-white">
+    <table class="w-full border-collapse">
+      <thead>
+        <tr>
+          <th
+            class="border-b border-[#e8e9e5] bg-[#f5f6f2] p-4 text-left align-top text-[0.78rem] tracking-[0.04em] whitespace-nowrap uppercase max-[650px]:p-3"
+          >
+            <button
+              class="cursor-pointer border-0 bg-transparent p-0 font-bold tracking-[inherit] text-inherit uppercase focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-[#b6d9bf]"
+              (click)="sortBy('item_name')"
+            >
+              Item <span class="sr-only">{{ sortLabel('item_name') }}</span>
+            </button>
+          </th>
+          <th
+            class="border-b border-[#e8e9e5] bg-[#f5f6f2] p-4 text-left align-top text-[0.78rem] tracking-[0.04em] whitespace-nowrap uppercase max-[650px]:p-3"
+          >
+            <button
+              class="cursor-pointer border-0 bg-transparent p-0 font-bold tracking-[inherit] text-inherit uppercase focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-[#b6d9bf]"
+              (click)="sortBy('price')"
+            >
+              Price <span class="sr-only">{{ sortLabel('price') }}</span>
+            </button>
+          </th>
+          <th
+            class="border-b border-[#e8e9e5] bg-[#f5f6f2] p-4 text-left align-top text-[0.78rem] tracking-[0.04em] whitespace-nowrap uppercase max-[650px]:p-3"
+          >
+            <button
+              class="cursor-pointer border-0 bg-transparent p-0 font-bold tracking-[inherit] text-inherit uppercase focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-[#b6d9bf]"
+              (click)="sortBy('priority')"
+            >
+              Priority <span class="sr-only">{{ sortLabel('priority') }}</span>
+            </button>
+          </th>
+          <th
+            class="border-b border-[#e8e9e5] bg-[#f5f6f2] p-4 text-left align-top text-[0.78rem] tracking-[0.04em] whitespace-nowrap uppercase max-[650px]:p-3"
+          >
+            <button
+              class="cursor-pointer border-0 bg-transparent p-0 font-bold tracking-[inherit] text-inherit uppercase focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-[#b6d9bf]"
+              (click)="sortBy('status')"
+            >
+              Status <span class="sr-only">{{ sortLabel('status') }}</span>
+            </button>
+          </th>
+          <th
+            class="border-b border-[#e8e9e5] bg-[#f5f6f2] p-4 text-left align-top text-[0.78rem] tracking-[0.04em] whitespace-nowrap uppercase max-[650px]:p-3"
+          >
+            <button
+              class="cursor-pointer border-0 bg-transparent p-0 font-bold tracking-[inherit] text-inherit uppercase focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-[#b6d9bf]"
+              (click)="sortBy('updated_at')"
+            >
+              Updated <span class="sr-only">{{ sortLabel('updated_at') }}</span>
+            </button>
+          </th>
+        </tr>
+      </thead>
+      <tbody class="[&>tr:last-child>td]:border-b-0">
+        @for (purchase of visiblePurchases(); track purchase.id) {
+        <tr>
+          <td class="border-b border-[#e8e9e5] p-4 text-left align-top max-[650px]:p-3">
+            <strong>{{ purchase.item_name }}</strong>
+            <span class="mt-[0.3rem] block text-[0.78rem] text-[#6a6d66]">
+              {{ purchase.agreed_count }} agreement{{ purchase.agreed_count === 1 ? '' : 's' }}
+            </span>
+          </td>
+          <td class="border-b border-[#e8e9e5] p-4 text-left align-top max-[650px]:p-3">
+            {{ purchase.price === null ? '—' : (purchase.price | currency: 'USD' : 'symbol' : '1.2-2') }}
+          </td>
+          <td class="border-b border-[#e8e9e5] p-4 text-left align-top max-[650px]:p-3">
+            <span [class]="priorityClasses[purchase.priority]">{{ purchase.priority }}</span>
+          </td>
+          <td class="border-b border-[#e8e9e5] p-4 text-left align-top max-[650px]:p-3">
+            <span [class]="statusClasses[status(purchase)]">{{ status(purchase) }}</span>
+            @if (status(purchase) === 'archived') {
+            <time class="mt-[0.3rem] block text-[0.78rem] text-[#6a6d66]"
+              >{{ purchase.archived_at | date: 'mediumDate' }}</time
+            >
+            } @else if (purchase.is_purchased_at) {
+            <time class="mt-[0.3rem] block text-[0.78rem] text-[#6a6d66]"
+              >{{ purchase.is_purchased_at | date: 'mediumDate' }}</time
+            >
+            }
+          </td>
+          <td class="border-b border-[#e8e9e5] p-4 text-left align-top max-[650px]:p-3">
+            {{ purchase.updated_at | date: 'mediumDate' }}
+          </td>
+        </tr>
+        @if (purchase.comments.length) {
+        <tr>
+          <td
+            class="border-b border-[#e8e9e5] bg-[#fbfcf9] px-4 pt-0 pb-4 text-left align-top max-[650px]:px-3 max-[650px]:pb-3"
+            colspan="5"
+          >
+            <details class="border-l-3 border-[#ccd5ca] px-4 py-[0.7rem]">
+              <summary class="cursor-pointer text-[0.85rem] font-bold">
+                Activity ({{ purchase.comments.length }})
+              </summary>
+              <ol class="mt-[0.8rem] mb-0 pl-[1.2rem]">
+                @for (comment of purchase.comments; track comment.id) {
+                <li [class]="commentClasses[comment.comment_type]">
+                  <div>
+                    <strong>{{ comment.comment_type === 'action' ? comment.content : 'Comment' }}</strong>
+                    <time class="mt-[0.3rem] block text-[0.78rem] text-[#6a6d66]"
+                      >{{ comment.created_at | date: 'medium' }}</time
+                    >
+                  </div>
+                  @if (comment.comment_type === 'user') {
+                  <p class="mt-[0.35rem] mb-0 [overflow-wrap:anywhere]">
+                    @for (part of links(comment.content); track $index) { @if (part.url) {
+                    <a class="text-[#235e73]" [href]="part.url" target="_blank" rel="noopener noreferrer"
+                      >{{ part.text }}</a
+                    >
+                    } @else { {{ part.text }} } }
+                  </p>
+                  } @for (change of changes(comment); track change.field) {
+                  <p class="mt-[0.35rem] mb-0 [overflow-wrap:anywhere]">
+                    <span class="capitalize">{{ change.field }}</span>: {{ change.from ?? 'none' }} → {{ change.to ??
+                    'none' }}
+                  </p>
+                  } @if (detailDate(comment, 'purchased_at'); as purchasedAt) {
+                  <p class="mt-[0.35rem] mb-0 [overflow-wrap:anywhere]">Purchased {{ purchasedAt | date: 'medium' }}</p>
+                  } @if (detailDate(comment, 'archived_at'); as archivedAt) {
+                  <p class="mt-[0.35rem] mb-0 [overflow-wrap:anywhere]">Archived {{ archivedAt | date: 'medium' }}</p>
+                  } @if (detailDate(comment, 'unarchived_at'); as unarchivedAt) {
+                  <p class="mt-[0.35rem] mb-0 [overflow-wrap:anywhere]">Restored {{ unarchivedAt | date: 'medium' }}</p>
+                  } @if (comment.details?.['after_count']; as count) {
+                  <p class="mt-[0.35rem] mb-0 [overflow-wrap:anywhere]">Agreements: {{ count }}</p>
+                  }
+                </li>
+                }
+              </ol>
+            </details>
+          </td>
+        </tr>
+        } }
+      </tbody>
+    </table>
+  </div>
+  }
+</main>
